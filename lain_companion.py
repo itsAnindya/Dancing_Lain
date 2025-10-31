@@ -66,6 +66,8 @@ class CompanionWindow:
         self.current_frame = 0
         self.animating = True
         self.ctrl_pressed = False
+        self.last_mouse_x = 0
+        self.last_mouse_y = 0
         
         # Bind mouse events for dragging
         self.label.bind('<Button-1>', self.start_drag)
@@ -104,8 +106,10 @@ class CompanionWindow:
     
     def start_drag_all(self, event):
         """Store the initial mouse position for dragging all windows"""
-        self.drag_start_x = event.x_root - self.window.winfo_x()
-        self.drag_start_y = event.y_root - self.window.winfo_y()
+        self.drag_start_x = event.x_root
+        self.drag_start_y = event.y_root
+        self.last_mouse_x = event.x_root
+        self.last_mouse_y = event.y_root
         self.ctrl_pressed = True
     
     def drag_all_windows(self, event):
@@ -113,22 +117,19 @@ class CompanionWindow:
         if not self.ctrl_pressed:
             return
         
-        new_x = event.x_root - self.drag_start_x
-        new_y = event.y_root - self.drag_start_y
+        # Calculate the delta from the last mouse position
+        delta_x = event.x_root - self.last_mouse_x
+        delta_y = event.y_root - self.last_mouse_y
         
-        # Calculate the offset
-        offset_x = new_x - self.window.winfo_x()
-        offset_y = new_y - self.window.winfo_y()
+        # Update last mouse position
+        self.last_mouse_x = event.x_root
+        self.last_mouse_y = event.y_root
         
-        # Move all companions by this offset
+        # Move all companions by this delta
         for companion in CompanionWindow.all_companions:
             current_x = companion.window.winfo_x()
             current_y = companion.window.winfo_y()
-            companion.window.geometry(f"+{current_x + offset_x}+{current_y + offset_y}")
-        
-        # Update drag start for next iteration
-        self.drag_start_x = event.x_root - self.window.winfo_x()
-        self.drag_start_y = event.y_root - self.window.winfo_y()
+            companion.window.geometry(f"+{current_x + delta_x}+{current_y + delta_y}")
     
     def stop_drag_all(self, event):
         """Stop dragging all windows"""

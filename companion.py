@@ -179,34 +179,50 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Lain Companion")
-    parser.add_argument("--count", "-n", type=int, default=1, help="Number of companions")
-    parser.add_argument("--gif-id", "-g", type=int, help="GIF id in gifs/ directory (e.g., 1 -> gifs/1.gif)")
-    parser.add_argument("--gif", type=str, help="Explicit path to GIF (overrides --gif-id)")
+    parser.add_argument("--count", "-n", type=int, default=None, help="Number of companions (default: one per provided GIF)")
+    parser.add_argument("--gif-id", "-g", type=int, nargs='+', help="One or more GIF ids in gifs/ directory (e.g., 1 2 -> gifs/1.gif, gifs/2.gif)")
+    parser.add_argument("--gif", type=str, nargs='+', help="One or more explicit paths to GIFs (relative or absolute)")
     parser.add_argument("--max-width", type=int, help="Maximum width in pixels for resizing (defaults to 400)")
     parser.add_argument("--max-height", type=int, help="Maximum height in pixels for resizing (defaults to 400)")
     parser.add_argument("--no-resize", action="store_true", help="Disable resizing; use original GIF size")
+    parser.add_argument("--skip-missing", action="store_true", help="Skip missing GIFs instead of exiting")
     args = parser.parse_args()
 
-    # Determine GIF path
+    # Determine GIF paths (combine --gif and --gif-id)
+    gif_paths = []
     if args.gif:
-        gif_path = args.gif
-    elif args.gif_id is not None:
-        gif_path = os.path.join(script_dir, f"gifs/{args.gif_id}.gif")
-    else:
-        gif_path = os.path.join(script_dir, "gifs/1.gif")
+        gif_paths.extend(args.gif)
+    if args.gif_id is not None:
+        for gid in args.gif_id:
+            gif_paths.append(os.path.join(script_dir, f"gifs/{gid}.gif"))
+    if not gif_paths:
+        gif_paths = [os.path.join(script_dir, "gifs/1.gif")]
 
-    # Validate count
-    num_companions = args.count
+    # Determine companion count: default to one per GIF if not specified
+    num_companions = args.count if args.count is not None else len(gif_paths)
     if num_companions < 1:
         print("Number of companions must be at least 1")
         num_companions = 1
     elif num_companions > 20:
         print("Warning: Creating more than 20 companions may impact performance")
 
-    # Check if GIF exists
-    if not os.path.exists(gif_path):
-        print(f"Error: {gif_path} not found!")
-        print("Ensure the GIF exists or specify a valid --gif path.")
+    # Check that all GIFs exist
+    missing = [p for p in gif_paths if not os.path.exists(p)]
+    if missing:
+        if args.skip_missing:
+            print("Warning: Skipping missing GIF(s):")
+            for p in missing:
+                print(f" - {p}")
+            gif_paths = [p for p in gif_paths if os.path.exists(p)]
+        else:
+            print("Error: The following GIF(s) were not found:")
+            for p in missing:
+                print(f" - {p}")
+            print("Ensure the GIFs exist or provide valid paths via --gif, or use --skip-missing.")
+            sys.exit(1)
+
+    if not gif_paths:
+        print("Error: No valid GIFs to display after filtering.")
         sys.exit(1)
 
     # Resizing bounds
@@ -229,7 +245,8 @@ if __name__ == "__main__":
         start_x = 100 + (i % 5) * 150
         start_y = 100 + (i // 5) * 150
 
-        companion = CompanionWindow(gif_path, root=root_window, max_width=max_w, max_height=max_h)
+        gif_path_for_companion = gif_paths[i % len(gif_paths)]
+        companion = CompanionWindow(gif_path_for_companion, root=root_window, max_width=max_w, max_height=max_h)
         # Move window to offset position using resized dimensions
         companion.window.geometry(f"{companion.image_width}x{companion.image_height}+{start_x}+{start_y}")
         companions.append(companion)

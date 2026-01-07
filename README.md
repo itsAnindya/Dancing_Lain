@@ -30,9 +30,31 @@ python companion.py --count 5
 
 Companions are automatically positioned in a grid pattern and can be dragged independently.
 
+### Multiple GIFs
+
+Assign different GIFs to companions (round-robin):
+```bash
+python companion.py --gif-id 1 2 3 --count 5
+python companion.py --gif ./gifs/1.gif ./gifs/2.gif --count 4
+```
+
+You can mix `--gif-id` and `--gif`; all provided GIFs are combined. If fewer GIFs than companions are given, they will repeat.
+
+Skip missing GIFs instead of exiting:
+```bash
+python companion.py --gif ./gifs/1.gif ./gifs/missing.gif --skip-missing --count 3
+```
+
 Select GIF by id from the `gifs/` directory:
 ```bash
 python companion.py --gif-id 2
+```
+
+Default behavior without `--count`:
+```bash
+# Creates one window per provided GIF
+python companion.py --gif-id 1 2 3        # 3 companions
+python companion.py --gif ./gifs/1.gif ./gifs/2.gif  # 2 companions
 ```
 
 Resize oversized GIFs (aspect preserved):

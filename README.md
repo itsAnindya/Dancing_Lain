@@ -17,18 +17,33 @@ A Python desktop companion application featuring Lain from *Serial Experiments L
 
 Run with a single companion:
 ```bash
-python lain_companion.py
+python companion.py
 ```
 
 ### Multiple Companions
 
 Spawn multiple companions:
 ```bash
-python lain_companion.py 3    # 3 companions
-python lain_companion.py 5    # 5 companions
+python companion.py --count 3
+python companion.py --count 5
 ```
 
 Companions are automatically positioned in a grid pattern and can be dragged independently.
+
+Select GIF by id from the `gifs/` directory:
+```bash
+python companion.py --gif-id 2
+```
+
+Resize oversized GIFs (aspect preserved):
+```bash
+python companion.py --gif-id 3 --max-width 400 --max-height 400
+```
+
+Disable resizing and use original GIF size:
+```bash
+python companion.py --gif-id 4 --no-resize
+```
 
 ### Controls
 
@@ -52,16 +67,16 @@ pip install Pillow
 
 3. Run the application:
 ```bash
-python lain_companion.py [number_of_companions]
+python companion.py [--count N] [--gif-id ID] [--max-width W] [--max-height H] [--no-resize]
 ```
 
 ## Project Structure
 
 ```
 Companion_Lain/
-├── lain_companion.py       # Main application
-├── lain-dancing.gif        # Animated GIF asset
-└── README.md              # This file
+├── companion.py            # Main application
+├── gifs/                   # GIF assets (e.g., 1.gif, 2.gif, ...)
+└── README.md               # This file
 ```
 
 ## Credits
@@ -89,7 +104,7 @@ This project is provided as-is for personal and educational use. The animated GI
 ## Troubleshooting
 
 **Issue**: GIF not loading
-- **Solution**: Ensure `lain-dancing.gif` is in the same directory as `lain_companion.py`
+- **Solution**: Ensure the GIF exists (e.g., `gifs/1.gif`) or provide a valid path via `--gif`
 
 **Issue**: Multiple windows not appearing
 - **Solution**: The application creates a hidden root window to manage all companions. Ensure tkinter is properly installed.
